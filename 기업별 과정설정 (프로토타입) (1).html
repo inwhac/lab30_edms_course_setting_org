@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기업별 과정설정 (프로토타입)</title>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#f4f5f7; --card:#ffffff; --border:#e5e7eb; --border-strong:#d1d5db;
+    --ink:#1f2328; --ink-2:#6b7280; --ink-3:#9ca3af;
+    --dark:#1f2937; --dark-ink:#ffffff;
+    --green:#22c55e; --dot-off:#d1d5db;
+    --row-hover:#f9fafb; --th:#f3f4f6;
+    --accent:#111827;
+    --radius:14px;
+    padding-top: env(safe-area-inset-top,0px);
+    padding-bottom: env(safe-area-inset-bottom,0px);
+    box-sizing:border-box;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','Pretendard','Noto Sans KR',sans-serif;
+    background:var(--bg); color:var(--ink); font-size:14px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1440px;margin:0 auto;padding:28px 24px 64px}
+  .topbar{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+  .topbar h1{font-size:22px;font-weight:700;letter-spacing:-.01em}
+  .crumb{font-size:12px;color:var(--ink-3)}
+  .crumb b{color:var(--ink-2);font-weight:500}
+  .badge-proto{display:inline-block;font-size:11px;font-weight:600;color:#9a3412;background:#ffedd5;border:1px solid #fed7aa;border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:middle}
+
+  .shell{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px 28px;min-height:70vh}
+  .intro{color:var(--ink-2);font-size:13px;margin-bottom:22px}
+  .intro .and{color:var(--ink);font-weight:600}
+  .sim{display:flex;align-items:center;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+  .sim-label{font-size:12px;color:var(--ink-3);font-weight:600;margin-right:2px}
+  .sim-btn{border:1px solid var(--border-strong);background:#fff;border-radius:999px;padding:6px 14px;font-size:12.5px;cursor:pointer;color:var(--ink-2)}
+  .sim-btn:hover{background:var(--row-hover)}
+  .sim-btn.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .single-msg{border:1px solid var(--border);background:#fafafa;border-radius:12px;padding:48px 24px;text-align:center;color:var(--ink-2);font-size:14px;line-height:1.9}
+
+  .layout{display:grid;grid-template-columns:288px 1fr;gap:28px;align-items:start}
+
+  /* left */
+  .left{min-width:0}
+  .btn-unified{width:100%;background:var(--dark);color:var(--dark-ink);border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px}
+  .btn-unified:hover{background:#111827}
+  .left-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .left-head .t{font-weight:700;font-size:14px}
+  .left-head .c{font-size:12px;color:var(--ink-3)}
+  .search{position:relative;margin-bottom:10px}
+  .search input{width:100%;padding:9px 12px 9px 32px;border:1px solid var(--border-strong);border-radius:8px;font-size:13px;background:#fff}
+  .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--ink-3)}
+
+  .tree{border-top:1px solid var(--border);margin-top:4px}
+  .node{display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:8px;cursor:pointer;user-select:none;font-size:13px}
+  .node:hover{background:var(--row-hover)}
+  .node.sel{background:var(--dark);color:#fff}
+  .node.sel .meta{color:#cbd5e1}
+  .node .tw{width:14px;flex:0 0 14px;display:inline-flex;justify-content:center;color:var(--ink-3);font-size:10px}
+  .node.sel .tw{color:#9ca3af}
+  .node .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .node .meta{font-size:11px;color:var(--ink-3)}
+  .node.disabled{color:var(--ink-3);cursor:not-allowed}
+  .node.disabled:hover{background:none}
+  .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:var(--dot-off)}
+  .dot.on{background:var(--green)}
+  .depth1{padding-left:10px}
+  .depth2{padding-left:26px}
+  .depth3{padding-left:42px}
+  .legend{margin-top:14px;font-size:11px;color:var(--ink-3);line-height:1.8;border-top:1px dashed var(--border);padding-top:10px}
+  .legend .dot{display:inline-block;vertical-align:middle;margin:0 3px}
+
+  /* right */
+  .right{min-width:0}
+  .sel-label{font-size:13px;color:var(--ink-2);margin-bottom:14px}
+  .sel-label b{color:var(--ink);font-weight:700}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px}
+  .tab{padding:10px 14px;font-size:14px;color:var(--ink-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tab.active{color:var(--ink);font-weight:600;border-bottom-color:var(--ink)}
+
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .panel-head .title{font-size:15px;font-weight:700}
+  .panel-head .title .n{color:var(--ink-3);font-weight:500;margin-left:4px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid var(--border-strong);background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;cursor:pointer;white-space:nowrap}
+  .btn:hover{background:var(--row-hover)}
+  .btn.dark{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .btn.dark:hover{background:#111827}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  .filters{background:#fafafa;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .filters select,.filters input{border:1px solid var(--border-strong);border-radius:8px;padding:8px 11px;font-size:13px;background:#fff}
+  .filters input{flex:1;min-width:150px}
+  .filters .sp{flex:1}
+
+  .box{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .empty{padding:60px 20px;text-align:center;color:var(--ink-3);font-size:13px}
+
+  .ctree{padding:4px}
+  .crow{display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:6px;font-size:13px}
+  .crow:hover{background:var(--row-hover)}
+  .crow .tw{width:14px;flex:0 0 14px;color:var(--ink-3);font-size:10px;cursor:pointer;text-align:center}
+  .crow.d1{font-weight:600;background:#f7f7f8}
+  .crow.d2{padding-left:26px}
+  .crow.d3{padding-left:44px;color:var(--ink-2)}
+  .crow .nm{flex:1;min-width:0}
+  .x{color:var(--ink-3);cursor:pointer;font-size:13px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;flex:0 0 22px}
+  .x:hover{background:#fee2e2;color:#dc2626}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--th);text-align:left;font-weight:600;color:var(--ink-2);padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--row-hover)}
+  .col-r{text-align:right}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:#eef2ff;color:#4338ca}
+  .btn-remove{border:1px solid var(--border-strong);background:#fff;border-radius:7px;padding:5px 11px;font-size:12px;cursor:pointer}
+  .btn-remove:hover{background:#fee2e2;color:#dc2626;border-color:#fecaca}
+
+  .pager{display:flex;align-items:center;gap:12px;margin-top:14px;font-size:12px;color:var(--ink-2)}
+  .pager select{border:1px solid var(--border-strong);border-radius:7px;padding:5px 8px;font-size:12px;background:#fff}
+  .pager .nav{margin-left:auto;display:flex;gap:6px}
+  .pager .nav button{width:30px;height:30px;border:1px solid var(--border-strong);background:#fff;border-radius:7px;cursor:pointer;color:var(--ink-2)}
+  .pager .nav button:disabled{opacity:.4;cursor:not-allowed}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(17,24,39,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:560px;max-height:84vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+  .modal.sm{max-width:420px}
+  .modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .modal-head h3{font-size:16px;font-weight:700}
+  .modal-head .close{cursor:pointer;color:var(--ink-3);font-size:18px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+  .modal-head .close:hover{background:var(--row-hover)}
+  .modal-body{padding:18px 20px;overflow:auto}
+  .modal-note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;border-radius:8px;padding:9px 12px;font-size:12px;margin-bottom:14px}
+  .modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+  .pick{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:13px;cursor:pointer}
+  .pick:hover{background:var(--row-hover)}
+  .pick.d1{font-weight:600;background:#f7f7f8}
+  .pick.d2{padding-left:26px}
+  .pick.d3{padding-left:44px;color:var(--ink-2)}
+  .pick input{width:15px;height:15px;accent-color:var(--dark)}
+  .pick-lbl{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+  .tw2{width:14px;flex:0 0 14px;color:var(--ink-3);font-size:10px;cursor:pointer;text-align:center}
+  .confirm-text{padding:6px 2px 2px;font-size:14px;line-height:1.7}
+  .tbd{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:8px;padding:12px 14px;font-size:13px}
+  .guide-box{background:#f7f7f8;border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:12.5px;color:var(--ink-2);line-height:1.95;margin-bottom:6px}
+  .step-title{font-size:13px;font-weight:700;margin:18px 0 9px}
+  .dl-row{display:flex;gap:8px;flex-wrap:wrap}
+  .dropzone{border:1px dashed var(--border-strong);border-radius:10px;background:#fafafa;padding:26px;text-align:center;color:var(--ink-3);font-size:13px;line-height:1.9}
+  .err-table{margin-top:0}
+  .prev-summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid var(--border)}
+  .chip-new{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+  .chip-over{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+  .chip-del{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
+  .chip-pass{background:#f3f4f6;color:#6b7280;border-color:#e5e7eb}
+  .chip-err{background:#fff7ed;color:#c2410c;border-color:#fed7aa}
+  .prev-msg{margin-top:10px;font-size:12.5px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px}
+  .prev-ok{margin-top:4px;font-size:12.5px;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:10px 12px}
+  .title-note{font-size:11px;font-weight:500;color:var(--ink-3)}
+  .pick-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 10px;font-weight:600;font-size:13px}
+  .pick-table th input,.pick-table td input{width:15px;height:15px;accent-color:var(--dark)}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:60}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:860px){
+    .layout{grid-template-columns:1fr;gap:20px}
+    .left{border-bottom:1px solid var(--border);padding-bottom:18px}
+    .tree{max-height:260px;overflow:auto}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <h1>기업별 과정설정 <span class="badge-proto">프로토타입</span></h1>
+    <div class="crumb">과정 및 카테고리 <b>›</b> 기업별 과정설정</div>
+  </div>
+
+  <div class="sim">
+    <span class="sim-label">시연 케이스</span>
+    <button class="sim-btn active" id="simMulti" onclick="setOrgMode('multi')">기업 여러 개일 때</button>
+    <button class="sim-btn" id="simSingle" onclick="setOrgMode('single')">기업 1개일 때</button>
+  </div>
+
+  <div class="shell">
+    <div class="intro">
+      기업을 선택하여 노출할 과정/카테고리/과정유형을 설정합니다. 과정설정하지 않은 경우 전체 과정이 노출됩니다.<br>
+      각 카테고리, 과정, 과정유형은 <span class="and">And</span> 조건을 따르며, 기업 설정과 대상구분 설정도 서로 <span class="and">And</span>로 결합됩니다.
+    </div>
+
+    <div class="layout" id="layout">
+      <!-- LEFT -->
+      <div class="left">
+        <button class="btn-unified" onclick="openUnified()">기업별 통합설정</button>
+        <div class="left-head">
+          <span class="t">기업</span>
+          <span class="c" id="orgCount"></span>
+        </div>
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="orgSearch" placeholder="기업 검색" oninput="renderTree()">
+        </div>
+        <div class="tree" id="tree"></div>
+        <div class="legend">
+          <span><span class="dot on"></span> 설정됨 &nbsp; <span class="dot"></span> 미설정</span>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right">
+        <div class="sel-label">선택된 기업 <b id="selName"></b></div>
+        <div class="tabs">
+          <div class="tab active" data-tab="category" onclick="switchTab('category')">카테고리 설정</div>
+          <div class="tab" data-tab="course" onclick="switchTab('course')">과정 설정</div>
+          <div class="tab" data-tab="type" onclick="switchTab('type')">과정유형 설정</div>
+        </div>
+        <div id="panel"></div>
+      </div>
+    </div>
+    <div id="singleMsg" class="single-msg" style="display:none">연수원에 등록된 기업이 1개입니다.<br>해당 기능은 여러 기업이 하나의 연수원을 사용할 때 지원되는 서비스입니다.</div>
+  </div>
+</div>
+
+<!-- modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <div class="modal-head"><h3 id="mTitle"></h3><div class="close" onclick="closeModal()">✕</div></div>
+    <div class="modal-body" id="mBody"></div>
+    <div class="modal-foot" id="mFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- 데이터 ---------- */
+const orgTree = [
+  { id:'o1', name:'휴넷그룹', type:'그룹사', depth:1, children:[
+    { id:'o2', name:'휴넷에듀케이션', type:'계열사', depth:2, children:[
+      { id:'o3', name:'에듀테크연구소', type:'하위계열사', depth:3, children:[] },
+      { id:'o4', name:'러닝콘텐츠랩', type:'하위계열사', depth:3, children:[] },
+    ]},
+    { id:'o5', name:'엠러닝', type:'계열사', depth:2, children:[] },
+    { id:'o6', name:'휴넷HR서비스', type:'계열사', depth:2, children:[] },
+  ]}
+];
+
+const categoryCatalog = [
+  { id:'c1', name:'직무공통', children:[
+    { id:'c1a', name:'디지털·AI활용', children:[
+      { id:'c1a1', name:'AI활용 공통' },{ id:'c1a2', name:'AI기초' },{ id:'c1a3', name:'생성AI' },
+      { id:'c1a4', name:'업무자동화' },{ id:'c1a5', name:'코파일럿' },
+    ]},
+    { id:'c1b', name:'OA', children:[
+      { id:'c1b1', name:'엑셀' },{ id:'c1b2', name:'PPT' },{ id:'c1b3', name:'워드' },{ id:'c1b4', name:'VBA·자동화' },
+    ]},
+    { id:'c1c', name:'협업툴', children:[
+      { id:'c1c1', name:'Slack' },{ id:'c1c2', name:'Teams' },{ id:'c1c3', name:'Notion' },{ id:'c1c4', name:'Jira·Confluence' },
+    ]},
+  ]},
+  { id:'c2', name:'리더십', children:[
+    { id:'c2a', name:'팀장 리더십', children:[ { id:'c2a1', name:'성과관리' },{ id:'c2a2', name:'코칭·피드백' } ]},
+    { id:'c2b', name:'경영일반', children:[ { id:'c2b1', name:'전략·기획' },{ id:'c2b2', name:'재무회계' } ]},
+  ]},
+  { id:'c3', name:'직무역량', children:[
+    { id:'c3a', name:'마케팅', children:[ { id:'c3a1', name:'퍼포먼스 마케팅' },{ id:'c3a2', name:'콘텐츠 마케팅' } ]},
+    { id:'c3b', name:'개발', children:[ { id:'c3b1', name:'프론트엔드' },{ id:'c3b2', name:'백엔드' },{ id:'c3b3', name:'데이터' } ]},
+  ]},
+];
+
+const courseCatalog = [
+  { id:'p1', name:'챗GPT 업무활용 마스터', cat:'생성AI', type:'온라인' },
+  { id:'p2', name:'엑셀 실무 함수 완성', cat:'엑셀', type:'온라인' },
+  { id:'p3', name:'팀장을 위한 성과면담', cat:'코칭·피드백', type:'하이브리드' },
+  { id:'p4', name:'퍼포먼스 마케팅 입문', cat:'퍼포먼스 마케팅', type:'온라인' },
+  { id:'p5', name:'백엔드 아키텍처 설계', cat:'백엔드', type:'온라인' },
+  { id:'p6', name:'Notion으로 협업하기', cat:'Notion', type:'마이크로러닝' },
+  { id:'p7', name:'데이터 분석 기초', cat:'데이터', type:'온라인' },
+  { id:'p8', name:'리더의 피드백 워크숍', cat:'코칭·피드백', type:'오프라인' },
+];
+
+const ALL_TYPES = ['온라인','오프라인','하이브리드','마이크로러닝'];
+
+/* 초기 설정값 (데모) */
+const settings = {
+  o2: { cats:new Set(['c1a1','c1a2','c1a3','c1b1','c1c1','c1c2']), courses:new Set(['p1','p2']), types:new Set(['온라인']) },
+  o5: { cats:new Set(), courses:new Set(['p4','p6']), types:new Set() },
+};
+function s(org){ if(!settings[org]) settings[org]={cats:new Set(),courses:new Set(),types:new Set()}; return settings[org]; }
+function hasAny(org){ const x=settings[org]; return x && (x.cats.size||x.courses.size||x.types.size); }
+
+/* ---------- 상태 ---------- */
+const state = { org:'o2', tab:'category', collapsed:new Set(), catCollapsed:new Set(), coursePage:1, courseFilterType:'', courseQuery:'' };
+
+/* ---------- 트리 ---------- */
+let orgIndex={}; (function idx(list){list.forEach(n=>{orgIndex[n.id]=n; if(n.children) idx(n.children)});})(orgTree);
+function countOrgs(list){let c=0;list.forEach(n=>{c++;if(n.children)c+=countOrgs(n.children)});return c;}
+
+function renderTree(){
+  const q=(document.getElementById('orgSearch').value||'').trim().toLowerCase();
+  const el=document.getElementById('tree'); el.innerHTML='';
+  document.getElementById('orgCount').textContent = countOrgs(orgTree)+'개';
+  const walk=(nodes)=>{
+    nodes.forEach(n=>{
+      const match = !q || n.name.toLowerCase().includes(q);
+      const kids = n.children||[];
+      const childHtml = kids.length?document.createElement('div'):null;
+      // build children first to know if any matches when searching
+      let anyChildShown=false;
+      const row=document.createElement('div');
+      row.className='node depth'+n.depth+(state.org===n.id?' sel':'');
+      const twIcon = kids.length ? (state.collapsed.has(n.id)?'▶':'▼') : '';
+      row.innerHTML =
+        '<span class="tw" onclick="toggleCollapse(event,\''+n.id+'\')">'+twIcon+'</span>'+
+        '<span class="nm">'+n.name+'</span>'+
+        '<span class="meta">'+n.type+'</span>'+
+        '<span class="dot'+(hasAny(n.id)?' on':'')+'"></span>';
+      row.onclick=(e)=>{ if(e.target.classList.contains('tw'))return; selectOrg(n.id); };
+      if(match || !q) el.appendChild(row);
+      if(kids.length && !state.collapsed.has(n.id)) walk(kids);
+    });
+  };
+  walk(orgTree);
+}
+function toggleCollapse(e,id){ e.stopPropagation(); if(state.collapsed.has(id))state.collapsed.delete(id);else state.collapsed.add(id); renderTree(); }
+function selectOrg(id){ state.org=id; state.coursePage=1; renderTree(); renderRight(); }
+
+/* ---------- 우측 ---------- */
+function switchTab(t){ state.tab=t; document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===t)); renderPanel(); }
+function renderRight(){
+  document.getElementById('selName').textContent = orgIndex[state.org].name+' ('+orgIndex[state.org].type+')';
+  renderPanel();
+}
+
+function renderPanel(){
+  const p=document.getElementById('panel');
+  if(state.tab==='category') p.innerHTML=catPanel();
+  else if(state.tab==='course') p.innerHTML=coursePanel();
+  else p.innerHTML=typePanel();
+}
+
+/* 카테고리 */
+function selectedCatTree(){
+  const sel=s(state.org).cats;
+  const prune=(nodes)=>nodes.map(n=>{
+    const kids=n.children?prune(n.children):[];
+    const on=sel.has(n.id);
+    if(on||kids.length) return {...n,children:kids,_on:on};
+    return null;
+  }).filter(Boolean);
+  return prune(categoryCatalog);
+}
+function catPanel(){
+  const tree=selectedCatTree();
+  const count=s(state.org).cats.size;
+  let body;
+  if(!tree.length){ body='<div class="empty">설정된 카테고리가 없습니다.</div>'; }
+  else{
+    const rows=[];
+    const walk=(nodes,d)=>nodes.forEach(n=>{
+      const hasKids=n.children&&n.children.length;
+      const collapsed=state.catCollapsed.has(n.id);
+      const tw=hasKids?'<span class="tw" onclick="toggleCat(event,\''+n.id+'\')">'+(collapsed?'▶':'▼')+'</span>':'<span class="tw"></span>';
+      rows.push('<div class="crow d'+d+'">'+tw+'<span class="nm">'+n.name+'</span><span class="x" onclick="delCat(\''+n.id+'\')">✕</span></div>');
+      if(hasKids&&!collapsed) walk(n.children,d+1);
+    });
+    walk(tree,1);
+    body='<div class="ctree">'+rows.join('')+'</div>';
+  }
+  return head('설정된 카테고리',count,[
+    '<button class="btn dark" onclick="openCatAdd()">카테고리 추가</button>',
+    '<button class="btn" onclick="openBulk(\'카테고리\')">일괄 추가/삭제</button>',
+    '<button class="btn" '+(count?'':'disabled')+' onclick="resetAll(\'cats\')">전체 초기화</button>'
+  ]) + '<div class="box">'+body+'</div>';
+}
+function delCat(id){
+  const sel=s(state.org).cats;
+  const collect=(node)=>{ sel.delete(node.id); (node.children||[]).forEach(collect); };
+  const find=(nodes)=>{for(const n of nodes){ if(n.id===id){collect(n);return true;} if(n.children&&find(n.children))return true;}return false;};
+  find(categoryCatalog);
+  toast('삭제되었습니다'); renderTree(); renderPanel();
+}
+function toggleCat(e,id){ e.stopPropagation(); if(state.catCollapsed.has(id))state.catCollapsed.delete(id);else state.catCollapsed.add(id); renderPanel(); }
+
+/* 과정 */
+function coursePanel(){
+  const sel=[...s(state.org).courses].map(id=>courseCatalog.find(c=>c.id===id)).filter(Boolean);
+  let filtered=sel.filter(c=>(!state.courseFilterType||c.type===state.courseFilterType) && (!state.courseQuery||c.name.includes(state.courseQuery)));
+  const count=sel.length;
+  const typeOpts=['<option value="">전체 유형</option>'].concat(ALL_TYPES.map(t=>'<option '+(state.courseFilterType===t?'selected':'')+'>'+t+'</option>')).join('');
+  const filters='<div class="filters">'+
+    '<select onchange="state.courseFilterType=this.value;renderPanel()">'+typeOpts+'</select>'+
+    '<input placeholder="과정명 검색" value="'+state.courseQuery+'" oninput="state.courseQuery=this.value;renderPanel()">'+
+    '<button class="btn" onclick="state.courseFilterType=\'\';state.courseQuery=\'\';renderPanel()">초기화</button>'+
+    '</div>';
+  let table;
+  if(!filtered.length){
+    table='<div class="box"><div class="empty">현재 조회된 데이터가 없습니다.</div></div>';
+  }else{
+    const rows=filtered.map(c=>'<tr><td>'+c.name+'</td><td>'+c.cat+'</td><td><span class="tag">'+c.type+'</span></td>'+
+      '<td class="col-r"><button class="btn-remove" onclick="delCourse(\''+c.id+'\')">제거</button></td></tr>').join('');
+    table='<div class="box"><table><thead><tr><th>과정명</th><th>카테고리명</th><th>과정유형</th><th class="col-r">관리</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="pager"><select><option>50</option><option>20</option></select> 개씩 보기'+
+      '<span class="nav"><button disabled>‹</button><button disabled>›</button></span></div>';
+  }
+  return head('설정된 과정',count,[
+    '<button class="btn dark" onclick="openCourseAdd()">과정 추가</button>',
+    '<button class="btn" onclick="openBulk(\'과정\')">일괄 추가/삭제</button>',
+    '<button class="btn" '+(count?'':'disabled')+' onclick="resetAll(\'courses\')">전체 초기화</button>'
+  ]) + filters + table;
+}
+function delCourse(id){ s(state.org).courses.delete(id); toast('삭제되었습니다'); renderTree(); renderPanel(); }
+
+/* 과정유형 */
+function typePanel(){
+  const sel=[...s(state.org).types];
+  const count=sel.length;
+  let table;
+  if(!count){ table='<div class="box"><div class="empty">설정된 과정유형이 없습니다.</div></div>'; }
+  else{
+    const rows=sel.map(t=>{
+      const n=courseCatalog.filter(c=>c.type===t).length*210 + (t==='온라인'?1485:0); // 데모용 과정 수
+      return '<tr><td>'+t+'</td><td>'+n.toLocaleString()+'</td><td class="col-r"><button class="btn-remove" onclick="delType(\''+t+'\')">제거</button></td></tr>';
+    }).join('');
+    table='<div class="box"><table><thead><tr><th>과정유형</th><th>과정 수</th><th class="col-r">관리</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  return head('설정된 과정유형',count,[
+    '<button class="btn dark" '+(count>=4?'disabled':'')+' onclick="openTypeAdd()">과정유형 추가</button>',
+    '<button class="btn" '+(count?'':'disabled')+' onclick="resetAll(\'types\')">전체 초기화</button>'
+  ]) + table;
+}
+function delType(t){ s(state.org).types.delete(t); toast('삭제되었습니다'); renderTree(); renderPanel(); }
+
+function head(title,count,btns){
+  return '<div class="panel-head"><div class="title">'+title+'<span class="n">'+count+'개</span></div>'+
+    '<div class="actions">'+btns.join('')+'</div></div>';
+}
+
+/* ---------- 모달 ---------- */
+let modalPick=new Set();
+function openModal(title,body,foot,size){
+  document.getElementById('mTitle').innerHTML=title+' <span class="title-note">(개발자 확인용 : 대상구분별 과정설정과 동일)</span>';
+  document.getElementById('mBody').innerHTML=body;
+  document.getElementById('mFoot').innerHTML=foot;
+  document.getElementById('modal').className='modal'+(size==='sm'?' sm':'');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target.id==='overlay') closeModal(); });
+
+/* 카테고리 추가 */
+let modalCatCollapsed=new Set();
+function openCatAdd(){
+  modalPick=new Set(); modalCatCollapsed=new Set();
+  openModal('카테고리 추가',
+    '<div class="modal-note">상위 카테고리 선택 시 하위가 함께 선택됩니다. 이미 설정된 카테고리는 선택할 수 없습니다.</div>'+
+    '<div class="pick-head"><span>카테고리</span><button class="btn" onclick="selectAllCats()">전체 선택</button></div>'+
+    '<div id="catPickList"></div>',
+    '<button class="btn" onclick="closeModal()">취소</button><button class="btn dark" onclick="applyCatAdd()">추가</button>');
+  renderCatPickList();
+}
+function renderCatPickList(){
+  const sel=s(state.org).cats;
+  const rows=[];
+  const walk=(nodes,d)=>nodes.forEach(n=>{
+    const hasKids=n.children&&n.children.length;
+    const collapsed=modalCatCollapsed.has(n.id);
+    const already=!hasKids && sel.has(n.id);
+    const checked=modalPick.has(n.id);
+    const tw=hasKids?'<span class="tw2" onclick="toggleCatPick(event,\''+n.id+'\')">'+(collapsed?'▶':'▼')+'</span>':'<span class="tw2"></span>';
+    rows.push('<div class="pick d'+d+'">'+tw+
+      '<label class="pick-lbl" style="'+(already?'opacity:.4;pointer-events:none':'')+'">'+
+      '<input type="checkbox" data-id="'+n.id+'" '+(already?'disabled':(checked?'checked':''))+' onchange="togglePick(this)">'+
+      '<span>'+n.name+(already?' (설정됨)':'')+'</span></label></div>');
+    if(hasKids&&!collapsed) walk(n.children,d+1);
+  });
+  walk(categoryCatalog,1);
+  document.getElementById('catPickList').innerHTML=rows.join('');
+}
+function toggleCatPick(e,id){ e.stopPropagation(); e.preventDefault(); if(modalCatCollapsed.has(id))modalCatCollapsed.delete(id);else modalCatCollapsed.add(id); renderCatPickList(); }
+function togglePick(cb){
+  const sel=s(state.org).cats, on=cb.checked;
+  const node=findCat(cb.dataset.id,categoryCatalog);
+  const apply=(n)=>{ const already=!(n.children&&n.children.length)&&sel.has(n.id); if(!already){ if(on)modalPick.add(n.id); else modalPick.delete(n.id);} (n.children||[]).forEach(apply); };
+  if(node) apply(node);
+  renderCatPickList();
+}
+function selectAllCats(){
+  const sel=s(state.org).cats;
+  const walk=(nodes)=>nodes.forEach(n=>{
+    const already=!(n.children&&n.children.length) && sel.has(n.id);
+    if(!already) modalPick.add(n.id);
+    if(n.children)walk(n.children);
+  });
+  walk(categoryCatalog);
+  renderCatPickList();
+}
+function findCat(id,nodes){for(const n of nodes){if(n.id===id)return n;if(n.children){const r=findCat(id,n.children);if(r)return r;}}return null;}
+function applyCatAdd(){
+  const sel=s(state.org).cats; let added=0;
+  modalPick.forEach(id=>{ if(!sel.has(id)){sel.add(id);added++;} 
+    // ensure ancestors of selected leaves are shown: add ancestor ids too
+  });
+  // add ancestor ids so tree renders branches
+  modalPick.forEach(id=>{ const path=catPath(id); path.forEach(pid=>sel.add(pid)); });
+  closeModal(); toast(added?'추가되었습니다':'변경사항이 없습니다'); renderTree(); renderPanel();
+}
+function catPath(id){ const path=[]; const dfs=(nodes,acc)=>{for(const n of nodes){const a=[...acc,n.id]; if(n.id===id){path.push(...a);return true;} if(n.children&&dfs(n.children,a))return true;}return false;}; dfs(categoryCatalog,[]); return path; }
+
+/* 과정 추가 */
+function openCourseAdd(){
+  modalPick=new Set();
+  const sel=s(state.org).courses;
+  const avail=courseCatalog.filter(c=>!sel.has(c.id));
+  let body;
+  if(!avail.length){ body='<div class="box"><div class="empty">설정 가능한 과정이 없습니다.</div></div>'; }
+  else{
+    const rows=avail.map(c=>'<tr><td><input type="checkbox" class="cPick" data-id="'+c.id+'" onchange="onCoursePick(this)"></td>'+
+      '<td>'+c.name+'</td><td>'+c.cat+'</td><td><span class="tag">'+c.type+'</span></td></tr>').join('');
+    body='<div class="box"><table class="pick-table"><thead><tr><th style="width:40px"><input type="checkbox" id="courseAll" onchange="toggleAllCourse(this)"></th><th>과정명</th><th>카테고리명</th><th>과정유형</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  openModal('과정 추가',
+    '<div class="modal-note">이미 설정된 과정은 노출되지 않습니다.</div>'+body,
+    '<button class="btn" onclick="closeModal()">취소</button><button class="btn dark" onclick="applyCourseAdd()">추가</button>');
+}
+function onCoursePick(cb){ if(cb.checked)modalPick.add(cb.dataset.id);else modalPick.delete(cb.dataset.id); syncCourseAll(); }
+function toggleAllCourse(cb){ document.querySelectorAll('.cPick').forEach(b=>{ b.checked=cb.checked; if(cb.checked)modalPick.add(b.dataset.id);else modalPick.delete(b.dataset.id); }); }
+function syncCourseAll(){ const all=document.querySelectorAll('.cPick').length; const chk=document.querySelectorAll('.cPick:checked').length; const h=document.getElementById('courseAll'); if(h){ h.checked=all>0&&all===chk; } }
+function applyCourseAdd(){
+  const sel=s(state.org).courses; let n=0; modalPick.forEach(id=>{if(!sel.has(id)){sel.add(id);n++;}});
+  closeModal(); toast(n?'추가되었습니다':'변경사항이 없습니다'); renderTree(); renderPanel();
+}
+
+/* 과정유형 추가 */
+function openTypeAdd(){
+  modalPick=new Set();
+  const sel=s(state.org).types;
+  const avail=ALL_TYPES.filter(t=>!sel.has(t));
+  if(!avail.length){ toast('설정 가능한 과정유형이 없습니다'); return; }
+  const rows=avail.map(t=>'<label class="pick d1"><input type="checkbox" data-id="'+t+'" onchange="if(this.checked)modalPick.add(this.dataset.id);else modalPick.delete(this.dataset.id)"><span>'+t+'</span></label>').join('');
+  openModal('과정유형 추가','<div class="modal-note">이미 설정된 과정유형은 노출되지 않습니다.</div>'+rows,
+    '<button class="btn" onclick="closeModal()">취소</button><button class="btn dark" onclick="applyTypeAdd()">추가</button>','sm');
+}
+function applyTypeAdd(){ const sel=s(state.org).types; let n=0; modalPick.forEach(t=>{if(!sel.has(t)){sel.add(t);n++;}}); closeModal(); toast(n?'추가되었습니다':'변경사항이 없습니다'); renderTree(); renderPanel(); }
+
+/* 전체 초기화 (확인 모달) */
+function resetAll(kind){
+  openModal('전체 초기화','<div class="confirm-text">등록된 모든 값이 삭제됩니다. 전체 초기화하시겠습니까?</div>',
+    '<button class="btn" onclick="closeModal()">취소</button><button class="btn dark" onclick="doReset(\''+kind+'\')">초기화</button>','sm');
+}
+function doReset(kind){ s(state.org)[kind].clear(); closeModal(); toast('전체 초기화되었습니다'); renderTree(); renderPanel(); }
+
+/* 통합설정 / 일괄 (정책 TBD) */
+let bulkSample=null;
+function bulkModal(title, guide, step1, errors, sample){
+  bulkSample=sample;
+  const guideHtml='<div class="guide-box">'+guide.join('<br>')+'</div>';
+  const dlHtml='<div class="step-title">Step 1. 업로드 양식 다운로드</div><div class="dl-row">'+
+    step1.map(b=>'<button class="btn" onclick="demoNote()">'+b+'</button>').join('')+'</div>';
+  const dropHtml='<div class="step-title">Step 2. 파일 첨부</div>'+
+    '<div class="dropzone">파일을 이곳에 끌어다 놓거나 파일 선택 버튼을 클릭하세요.<br><button class="btn" onclick="demoNote()">파일 선택</button></div>';
+  const errHtml='<div class="step-title">오류 케이스 정리</div><div class="box err-table"><table><thead><tr><th style="width:38%">오류 케이스</th><th>설명</th></tr></thead><tbody>'+
+    errors.map(e=>'<tr><td>'+e[0]+'</td><td>'+e[1]+'</td></tr>').join('')+'</tbody></table></div>';
+  openModal(title, guideHtml+dlHtml+dropHtml+errHtml+'<div id="previewResult"></div>',
+    '<button class="btn" onclick="showPreview()">미리보기</button><button class="btn" id="bulkSubmit" disabled>등록</button>');
+}
+function demoNote(){ toast('데모 프로토타입에서는 파일 업로드·다운로드가 동작하지 않습니다'); }
+function showPreview(){
+  if(!bulkSample) return;
+  const errs=bulkSample.errors;
+  let detail;
+  if(errs.length){
+    const rows=errs.map(e=>'<tr><td>'+e[0]+'</td><td>'+e[1]+'</td><td>'+e[2]+'</td></tr>').join('');
+    detail='<div class="box"><table><thead><tr><th style="width:52px">행</th><th>입력값</th><th>오류 사유</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="prev-msg">오류 '+errs.length+'건이 있어 등록할 수 없습니다. 수정 후 다시 업로드해 주세요.</div>';
+    const b=document.getElementById('bulkSubmit'); if(b)b.disabled=true;
+  }else{
+    detail='<div class="prev-ok">오류가 없습니다. 등록 버튼을 클릭해 주세요.</div>';
+    const b=document.getElementById('bulkSubmit'); if(b)b.disabled=false;
+  }
+  const el=document.getElementById('previewResult');
+  el.innerHTML='<div class="step-title">미리보기 결과</div>'+detail;
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  toast('미리보기 결과를 불러왔습니다(데모 샘플)');
+}
+
+function openUnified(){
+  bulkModal('기업별 통합설정',
+    ['샘플 파일을 다운로드 후 내용을 작성하여 파일을 등록해 주세요.',
+     '1열 기업 코드, 2열 카테고리 코드, 3열 구분값(1.등록 / 2.삭제)을 입력해 주세요.',
+     '등록 시 기존 설정값은 덮어쓰기 처리됩니다.',
+     '최종 등록은 미리보기 후 가능합니다.'],
+    ['업로드 양식 다운로드','기업 코드 다운로드','카테고리 코드 다운로드'],
+    [['양식 오류','엑셀 양식의 열 구성이 올바르지 않습니다.'],
+     ['기업 미입력','기업 코드를 입력해 주세요.'],
+     ['기업 코드 오류','기업 코드가 올바르지 않습니다.'],
+     ['권한 범위 밖 기업','설정 권한이 없는 기업입니다.'],
+     ['카테고리 코드 오류','카테고리 코드가 올바르지 않습니다.'],
+     ['구분값 오류','구분값이 1 또는 2가 아닙니다.'],
+     ['중복 코드','동일한 값이 중복되었습니다.']],
+    { summary:{신규:14,덮어쓰기:3,삭제:2,무시:1},
+      errors:[[7,'기업 ORG-990 / 카테고리 CAT-120','설정 권한이 없는 기업입니다.'],
+              [15,'기업 ORG-A01','기업 코드가 올바르지 않습니다.']] });
+}
+function openBulk(kind){
+  if(kind==='카테고리'){
+    bulkModal('카테고리 일괄 추가/삭제',
+      ['샘플 파일을 다운로드 후 내용을 작성하여 파일을 등록해 주세요.',
+       '1열에 카테고리코드를, 2열에 구분값(추가 1 / 삭제 2)을 입력해 주세요.',
+       '이미 등록된 코드를 1로 입력 시 덮어쓰기 처리됩니다.',
+       '최종 등록은 미리보기 후 가능합니다.'],
+      ['업로드 양식 다운로드','카테고리 코드 다운로드'],
+      [['양식 오류','엑셀 양식의 열 구성이 올바르지 않습니다.'],
+       ['카테고리 미입력','카테고리 코드를 입력해 주세요.'],
+       ['카테고리 코드 오류','카테고리 코드가 올바르지 않습니다.'],
+       ['카테고리 조회 실패','카테고리 정보를 조회하지 못했습니다.'],
+       ['구분값 오류','구분값이 1 또는 2가 아닙니다.'],
+       ['중복 코드','동일한 카테고리 코드가 중복되었습니다.']],
+      { summary:{신규:9,덮어쓰기:2,삭제:1,무시:0},
+        errors:[[4,'CAT-777','카테고리 코드가 올바르지 않습니다.'],
+                [8,'(빈 값)','카테고리 코드를 입력해 주세요.']] });
+  } else {
+    bulkModal('과정 일괄 추가/삭제',
+      ['샘플 파일을 다운로드 후 내용을 작성하여 파일을 등록해 주세요.',
+       '1열에 과정코드를, 2열에 구분값(추가 1 / 삭제 2)을 입력해 주세요.',
+       '이미 등록된 코드를 1로 입력 시 덮어쓰기 처리됩니다.',
+       '최종 등록은 미리보기 후 가능합니다.'],
+      ['업로드 양식 다운로드','과정 리스트 다운로드'],
+      [['양식 오류','엑셀 양식의 열 구성이 올바르지 않습니다.'],
+       ['과정 미입력','과정 코드를 입력해 주세요.'],
+       ['과정 코드 오류','과정 코드가 올바르지 않습니다.'],
+       ['과정 조회 실패','과정 정보를 조회하지 못했습니다.']],
+      { summary:{신규:20,덮어쓰기:5,삭제:3,무시:2},
+        errors:[[11,'CRS-55123','과정 정보를 조회하지 못했습니다.'],
+                [12,'CRS-55123','동일한 과정 코드가 중복되었습니다.']] });
+  }
+}
+
+/* 토스트 */
+let toastT; function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),1600); }
+
+/* 기업 수 시연 모드 */
+function setOrgMode(mode){
+  document.getElementById('simMulti').classList.toggle('active',mode==='multi');
+  document.getElementById('simSingle').classList.toggle('active',mode==='single');
+  const layout=document.getElementById('layout'), msg=document.getElementById('singleMsg');
+  if(mode==='single'){ layout.style.display='none'; msg.style.display='block'; }
+  else { layout.style.display='grid'; msg.style.display='none'; renderTree(); renderRight(); }
+}
+
+/* init */
+renderTree(); renderRight();
+</script>
+</body>
+</html>
